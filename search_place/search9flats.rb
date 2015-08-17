@@ -5,22 +5,28 @@ module SearchPlace
     include HTTParty
     base_uri "https://api.9flats.com"
 
-    def initialize
+    def initialize(threadPool)
+      @threadPool = threadPool
       @options = { 'client_id' => APP_ENV['9flats_key'] }
     end
 
     def get_photos_of(place)
-      res = http_get_photos_of(place)
+      res = http_get_photos_of(place, 1) # First page
+
+      pages = (res['total_entries'] / res['per_page'].to_f).ceil
+      # pages.each do |page|
+      #   ... # Continue pagination
+      # end
+
       photo_urls = map_photo_urls(res)
     end
 
     private
 
-    def http_get_photos_of(place)
+    def http_get_photos_of(place, page)
       @options['search[query]'] = place
-      @options['search[page]'] = 1 # TODO: add pagination!
-      res = self.class.get "/api/v4/places", query: @options
-      res
+      @options['search[page]'] = page
+      self.class.get "/api/v4/places", query: @options
     end
 
     # Output: { id1 => { url1 => 0, url1 => 1, ... }, id2 => ... }

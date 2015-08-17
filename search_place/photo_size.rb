@@ -2,25 +2,22 @@ module SearchPlace
 
   class PhotoSize
 
-    def calculate(photo_list)
-      threadPool = Concurrent::ThreadPoolExecutor.new(
-        min_threads: [2, Concurrent.processor_count].min,
-        max_threads: [2, Concurrent.processor_count].max,
-        max_queue:   [2, Concurrent.processor_count].max * 5,
-        overflow_policy: :caller_runs
-      )
+    def initialize(threadPool)
+      @threadPool = threadPool
+    end
 
+    def calculate(photo_list)
       photo_list.each do |place_id, batch|
-        get_photo_sizes_in_batch(photo_list, place_id, threadPool)
+        get_photo_sizes_in_batch(photo_list, place_id)
       end
 
       finalize_requests(photo_list)
       sort_photo_list(photo_list)
     end
 
-    def get_photo_sizes_in_batch(photo_list, place_id, threadPool)
+    def get_photo_sizes_in_batch(photo_list, place_id)
       photo_list[place_id].each do |url, _|
-        photo_list[place_id][url] = (Concurrent::Future.new executor: threadPool do
+        photo_list[place_id][url] = (Concurrent::Future.new executor: @threadPool do
           get_photo_size(url)
         end).execute
       end

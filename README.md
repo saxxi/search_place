@@ -11,6 +11,6 @@ and return an array of photo URLs sorted by photo size in bytes.
 This code uses system call to `curl` in order to simplify HTTP headers extraction.
 Makes sure you have it installed in your environment.
 
-## TODO:
+## Todo
 
 - pagination is missing, sorry
